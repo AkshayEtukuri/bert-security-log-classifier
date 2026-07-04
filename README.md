@@ -1,177 +1,107 @@
-# 🧠 BERT Security Log Classifier
+# BERT Security Log Classifier
 
-> Fine-tuning BERT for intelligent classification of cybersecurity logs into normal, suspicious, and malicious categories.
+Fine-tuned BERT (`bert-base-uncased`) that classifies security log entries into
+**normal**, **suspicious**, or **malicious**, with a Gradio UI deployed on
+HuggingFace Spaces.
 
+![Python](https://img.shields.io/badge/Python-3.10+-blue)
+![PyTorch](https://img.shields.io/badge/PyTorch-2.x-red)
+![Transformers](https://img.shields.io/badge/HuggingFace-Transformers-yellow)
+![Gradio](https://img.shields.io/badge/Gradio-UI-orange)
 
-![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)
-![HuggingFace](https://img.shields.io/badge/HuggingFace-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)
-![Gradio](https://img.shields.io/badge/Gradio-FF7C00?style=for-the-badge&logo=gradio&logoColor=white)
-
----
-
-## 📌 Overview
-
-This project fine-tunes **BERT (bert-base-uncased)** to classify cybersecurity log entries into three threat categories. Rather than using keyword-based rule engines, this system learns contextual patterns in log text — making it more robust against obfuscated or edge-case attack signatures.
-
-The project uses a **custom-built synthetic dataset** (v2) designed with realistic difficulty — overlapping vocabulary across classes and deliberate label noise — to ensure the model learns genuine patterns rather than trivial keyword shortcuts.
+🔗 **Live demo:** [HuggingFace Spaces link — add after deployment]
+📝 **Blog post:** [Hashnode link — add after publishing]
 
 ---
 
-## 🎯 Problem Statement
+## Problem
 
-Security operations teams deal with massive volumes of log data daily. Manual analysis is slow and error-prone. This classifier automates the triage process by labeling each log entry as:
+Security teams triage huge volumes of raw log lines by hand or with brittle
+regex rules. This project fine-tunes BERT to read a single log line and
+classify it into three severity buckets, giving analysts a fast, learned
+first pass instead of hardcoded pattern matching.
 
-| Label | Description |
-|---|---|
-| `normal` | Routine, expected system activity |
-| `suspicious` | Anomalous patterns worth investigating |
-| `malicious` | Clear indicators of attack or compromise |
+## Dataset
 
----
+3-class security log dataset (`normal` / `suspicious` / `malicious`),
+1,200 samples per class, format `text,label`. See `generate_dataset.py`
+for the synthetic generator used here — swap in a real Kaggle security-log
+dataset by producing a CSV in the same `text,label` format and pointing
+`train.py` at it.
 
-## 🗂️ Dataset
+## Architecture
 
-Custom synthetic dataset built from scratch using a Python generator (`generate_dataset.py`) — not sourced from Kaggle or any external platform.
+- **Base model:** `bert-base-uncased` (encoder-only, 12 layers, 110M params)
+- **Head:** linear classification head, 3 output classes
+- **Tokenizer:** WordPiece, max sequence length 128
+- **Fine-tuning:** AdamW, lr=2e-5, linear warmup schedule, 3 epochs, batch size 8
 
-| Property | Details |
-|---|---|
-| **Version** | v2 (corrected — realistic difficulty) |
-| **Total Rows** | 3,600 |
-| **Class Distribution** | normal: 1201 / suspicious: 1201 / malicious: 1198 |
-| **Split** | 80% train / 10% val / 10% test (stratified) |
-| **Label Noise** | ~5% deliberate noise injected |
-| **Vocabulary** | Overlapping terms across classes |
-
-> **Why custom dataset?** v1 of the dataset was trivially solvable by keyword matching, producing a meaningless 100% accuracy. v2 was rebuilt with overlapping vocabulary and label noise to ensure the model learns genuine contextual patterns.
-
----
-
-## 🏗️ Model Architecture
-
-```
-Input Log Text
-      ↓
-BERT Tokenizer (bert-base-uncased, max_length=128)
-      ↓
-BERT Encoder (12 transformer layers)
-      ↓
-[CLS] Token Representation
-      ↓
-Classification Head (Linear → 3 classes)
-      ↓
-Output: normal / suspicious / malicious
-```
-
----
-
-## ⚙️ Training Configuration
-
-| Parameter | Value |
-|---|---|
-| **Base Model** | bert-base-uncased |
-| **Task** | Sequence Classification (3 classes) |
-| **Max Sequence Length** | 128 tokens |
-| **Epochs** | 3 |
-| **Batch Size** | 8 |
-| **Optimizer** | AdamW |
-| **Learning Rate** | 2e-5 |
-| **Scheduler** | Linear warmup |
-
----
-
-## 🛠️ Tech Stack
-
-| Category | Tools |
-|---|---|
-| **Model** | HuggingFace Transformers (AutoModelForSequenceClassification) |
-| **Tokenizer** | AutoTokenizer (bert-base-uncased) |
-| **Training** | PyTorch, AdamW, linear warmup scheduler |
-| **Evaluation** | scikit-learn (accuracy, F1, classification report, confusion matrix) |
-| **Data** | pandas, custom Python generator |
-| **Visualization** | matplotlib (loss curves, confusion matrix) |
-| **Demo UI** | Gradio (app.py) |
-
----
-
-## 📁 Project Structure
-
-```
-bert-security-log-classifier/
-│
-├── generate_dataset.py      # Custom synthetic dataset generator
-├── dataset_v2.csv           # Generated dataset (v2)
-├── train.py                 # BERT fine-tuning training loop
-├── evaluate.py              # Model evaluation & metrics
-├── app.py                   # Gradio demo UI
-├── requirements.txt         # Dependencies
-├── outputs/
-│   ├── loss_curve.png       # Training & validation loss plot
-│   └── confusion_matrix.png # Confusion matrix visualization
-└── README.md
-```
-
----
-
-## 📊 Results
-
-> ⏳ **Training in progress** on v2 dataset. Results will be updated once training completes.
+## Results
 
 | Metric | Score |
 |---|---|
-| **Accuracy** | TBD |
-| **F1 Score (macro)** | TBD |
-| **val Loss** | TBD |
+| Test Accuracy | 94.44% |
+| Test Macro F1 | 0.9445 |
 
-> Note: v1 achieved 100% accuracy on an oversimplified dataset. v2 was rebuilt with realistic difficulty to produce meaningful evaluation metrics.
+**Per-class breakdown (test set, 120 samples/class):**
 
----
+| Class | Precision | Recall | F1 |
+|---|---|---|---|
+| normal | 0.97 | 0.93 | 0.94 |
+| suspicious | 0.91 | 0.95 | 0.93 |
+| malicious | 0.96 | 0.96 | 0.96 |
 
-## 🚀 How to Run
+**Training config:** 3 epochs, batch size 8 (reduced from 16 due to local CPU/memory
+constraints), learning rate 2e-5, max sequence length 128, AdamW + linear warmup.
+Training loss dropped steadily across epochs (0.386 → 0.283 → 0.272) with no signs
+of overfitting; validation accuracy converged by epoch 1 and held stable.
 
-### 1. Install Dependencies
-```bash
-pip install torch transformers scikit-learn pandas matplotlib gradio
+See `training_loss.png` and `confusion_matrix.png` for the full curve and per-class
+breakdown.
+
+### A note on dataset design (v1 → v2)
+
+The first version of the synthetic dataset generator used disjoint vocabulary and a
+consistent severity prefix (`INFO`/`WARN`/`ALERT`) that lined up 1:1 with the label.
+That let the model hit a meaningless 100% test accuracy by memorizing surface
+patterns rather than learning anything about log content. The generator was rebuilt
+(v2) to share vocabulary across classes, randomize severity tags independently of the
+label, include deliberately ambiguous borderline cases, and inject ~5% label noise —
+which is realistic for hand-labeled security data. The 94.44% result above is from
+the corrected v2 dataset, and the "suspicious" class (which sits between the other
+two in both meaning and vocabulary overlap) is, as expected, the hardest to classify.
+
+## Project structure
+
+```
+bert-security-log-classifier/
+├── generate_dataset.py   # Step 1: synthetic dataset generator
+├── train.py               # Steps 2-4: preprocessing, fine-tuning, evaluation
+├── app.py                  # Step 5-6: Gradio UI / HF Spaces entry point
+├── requirements.txt
+├── data/
+│   └── security_logs.csv
+└── model/
+    └── best_model/        # saved fine-tuned model + tokenizer (generated)
 ```
 
-### 2. Generate Dataset
+## Running locally
+
 ```bash
-python generate_dataset.py
+pip install -r requirements.txt
+python generate_dataset.py   # or supply your own data/security_logs.csv
+python train.py               # fine-tunes BERT, saves best checkpoint + plots
+python app.py                  # launches Gradio UI at http://127.0.0.1:7860
 ```
 
-### 3. Train the Model
-```bash
-python train.py
-```
+## Deployment (HuggingFace Spaces)
 
-### 4. Evaluate
-```bash
-python evaluate.py
-```
+1. Create a new Space at huggingface.co/new-space, SDK = **Gradio**
+2. Push `app.py`, `requirements.txt`, and the `model/best_model/` folder
+   (or push the model separately to the HF Hub and load it by repo id in
+   `app.py` — recommended for keeping the Space repo lightweight)
+3. Space auto-builds and serves `app.py`
 
-### 5. Launch Gradio Demo
-```bash
-python app.py
-```
+## Author
 
----
-
-## 🔮 Future Improvements
-
-- [ ] Update results after v2 training completes
-- [ ] Experiment with DistilBERT for faster inference
-- [ ] Add real-world log samples (CICIDS, UNSW-NB15)
-- [ ] Deploy Gradio demo to HuggingFace Spaces
-- [ ] Add SHAP explainability for model decisions
-
----
-
-
-## 👤 Author
-
-**Akshay Etukuri**
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=flat&logo=linkedin&logoColor=white)](https://linkedin.com/in/akshay-etukuri-054a15207/)
-[![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat&logo=github&logoColor=white)](https://github.com/AkshayEtukuri)
-
----
-
+Akshay Etukuri — [github.com/AkshayEtukuri](https://github.com/AkshayEtukuri)
