@@ -2,7 +2,7 @@
 
 > Fine-tuning BERT for intelligent classification of cybersecurity logs into normal, suspicious, and malicious categories.
 
-![Status](https://img.shields.io/badge/Status-In%20Progress-yellow?style=for-the-badge)
+
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)
 ![HuggingFace](https://img.shields.io/badge/HuggingFace-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)
