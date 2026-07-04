@@ -34,47 +34,22 @@ dataset by producing a CSV in the same `text,label` format and pointing
 - **Base model:** `bert-base-uncased` (encoder-only, 12 layers, 110M params)
 - **Head:** linear classification head, 3 output classes
 - **Tokenizer:** WordPiece, max sequence length 128
-- **Fine-tuning:** AdamW, lr=2e-5, linear warmup schedule, 3 epochs, batch size 8
+- **Fine-tuning:** AdamW, lr=2e-5, linear warmup schedule, 3 epochs, batch size 16
 
 ## Results
 
 | Metric | Score |
 |---|---|
-| Test Accuracy | 94.44% |
-| Test Macro F1 | 0.9445 |
+| Test Accuracy | fill in after training run |
+| Test Macro F1 | fill in after training run |
 
-**Per-class breakdown (test set, 120 samples/class):**
-
-| Class | Precision | Recall | F1 |
-|---|---|---|---|
-| normal | 0.97 | 0.93 | 0.94 |
-| suspicious | 0.91 | 0.95 | 0.93 |
-| malicious | 0.96 | 0.96 | 0.96 |
-
-**Training config:** 3 epochs, batch size 8 (reduced from 16 due to local CPU/memory
-constraints), learning rate 2e-5, max sequence length 128, AdamW + linear warmup.
-Training loss dropped steadily across epochs (0.386 → 0.283 → 0.272) with no signs
-of overfitting; validation accuracy converged by epoch 1 and held stable.
-
-See `training_loss.png` and `confusion_matrix.png` for the full curve and per-class
-breakdown.
-
-### A note on dataset design (v1 → v2)
-
-The first version of the synthetic dataset generator used disjoint vocabulary and a
-consistent severity prefix (`INFO`/`WARN`/`ALERT`) that lined up 1:1 with the label.
-That let the model hit a meaningless 100% test accuracy by memorizing surface
-patterns rather than learning anything about log content. The generator was rebuilt
-(v2) to share vocabulary across classes, randomize severity tags independently of the
-label, include deliberately ambiguous borderline cases, and inject ~5% label noise —
-which is realistic for hand-labeled security data. The 94.44% result above is from
-the corrected v2 dataset, and the "suspicious" class (which sits between the other
-two in both meaning and vocabulary overlap) is, as expected, the hardest to classify.
+See `training_loss.png` and `confusion_matrix.png` for the training curve
+and per-class breakdown.
 
 ## Project structure
 
 ```
-bert-security-log-classifier/
+bert-security/
 ├── generate_dataset.py   # Step 1: synthetic dataset generator
 ├── train.py               # Steps 2-4: preprocessing, fine-tuning, evaluation
 ├── app.py                  # Step 5-6: Gradio UI / HF Spaces entry point
