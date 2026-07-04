@@ -10,6 +10,8 @@ HuggingFace Spaces.
 ![Gradio](https://img.shields.io/badge/Gradio-UI-orange)
 
 🔗 **Live demo:** [huggingface.co/spaces/EAkshay/bert-security-log-classifier](https://huggingface.co/spaces/EAkshay/bert-security-log-classifier)
+
+
 📝 **Blog post:** [akshayetukuri.hashnode.dev/fine-tuning-bert-to-classify-security-logs-and-the-100-accuracy-trap-i-fell-into](https://akshayetukurihashnodedev.hashnode.dev/fine-tuning-bert-to-classify-security-logs-and-the-100-accuracy-trap-i-fell-into)
 
 
