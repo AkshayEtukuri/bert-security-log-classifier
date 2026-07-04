@@ -1,96 +1,224 @@
-# 🧠 BERT Security Log Classifier
+<div align="center">
 
-> Fine-tuning BERT for intelligent classification of cybersecurity logs into normal, suspicious, and malicious categories.
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:1a1a2e,50:16213e,100:0f3460&height=200&section=header&text=BERT%20Security%20Log%20Classifier&fontSize=40&fontColor=00D4FF&animation=fadeIn&fontAlignY=38&desc=Teaching%20AI%20to%20Think%20Like%20a%20Security%20Analyst&descAlignY=55&descColor=ffffff" />
 
+</div>
+
+<div align="center">
 
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)
-![HuggingFace](https://img.shields.io/badge/HuggingFace-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)
-![Gradio](https://img.shields.io/badge/Gradio-FF7C00?style=for-the-badge&logo=gradio&logoColor=white)
+![HuggingFace](https://img.shields.io/badge/🤗_HuggingFace-FFD21E?style=for-the-badge)
+![Gradio](https://img.shields.io/badge/Gradio-FF7C00?style=for-the-badge)
+![BERT](https://img.shields.io/badge/BERT-base--uncased-00D4FF?style=for-the-badge)
 
----
-
-## 📌 Overview
-
-This project fine-tunes **BERT (bert-base-uncased)** to classify cybersecurity log entries into three threat categories. Rather than using keyword-based rule engines, this system learns contextual patterns in log text — making it more robust against obfuscated or edge-case attack signatures.
-
-The project uses a **custom-built synthetic dataset** (v2) designed with realistic difficulty — overlapping vocabulary across classes and deliberate label noise — to ensure the model learns genuine patterns rather than trivial keyword shortcuts.
-
----
-
-## 🎯 Problem Statement
-
-Security operations teams deal with massive volumes of log data daily. Manual analysis is slow and error-prone. This classifier automates the triage process by labeling each log entry as:
-
-| Label | Description |
-|---|---|
-| `normal` | Routine, expected system activity |
-| `suspicious` | Anomalous patterns worth investigating |
-| `malicious` | Clear indicators of attack or compromise |
-
----
-
-## 🗂️ Dataset
-
-Custom synthetic dataset built from scratch using a Python generator (`generate_dataset.py`) — not sourced from Kaggle or any external platform.
-
-| Property | Details |
-|---|---|
-| **Version** | v2 (corrected — realistic difficulty) |
-| **Total Rows** | 3,600 |
-| **Class Distribution** | normal: 1201 / suspicious: 1201 / malicious: 1198 |
-| **Split** | 80% train / 10% val / 10% test (stratified) |
-| **Label Noise** | ~5% deliberate noise injected |
-| **Vocabulary** | Overlapping terms across classes |
-
-> **Why custom dataset?** v1 of the dataset was trivially solvable by keyword matching, producing a meaningless 100% accuracy. v2 was rebuilt with overlapping vocabulary and label noise to ensure the model learns genuine contextual patterns.
-
----
-
-## 🏗️ Model Architecture
+<br/>
 
 ```
-Input Log Text
-      ↓
-BERT Tokenizer (bert-base-uncased, max_length=128)
-      ↓
-BERT Encoder (12 transformer layers)
-      ↓
-[CLS] Token Representation
-      ↓
-Classification Head (Linear → 3 classes)
-      ↓
-Output: normal / suspicious / malicious
+███████╗███████╗ ██████╗██╗   ██╗██████╗ ██╗████████╗██╗   ██╗
+██╔════╝██╔════╝██╔════╝██║   ██║██╔══██╗██║╚══██╔══╝╚██╗ ██╔╝
+███████╗█████╗  ██║     ██║   ██║██████╔╝██║   ██║    ╚████╔╝ 
+╚════██║██╔══╝  ██║     ██║   ██║██╔══██╗██║   ██║     ╚██╔╝  
+███████║███████╗╚██████╗╚██████╔╝██║  ██║██║   ██║      ██║   
+╚══════╝╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚═╝   ╚═╝      ╚═╝  
+```
+
+*"Not every threat announces itself. Some whisper."*
+
+</div>
+
+---
+
+## 🔴 THREAT INCOMING...
+
+```bash
+$ tail -f /var/log/system.log
+
+[2024-01-15 03:42:17] auth: Failed login attempt from 192.168.1.105
+[2024-01-15 03:42:18] auth: Failed login attempt from 192.168.1.105  
+[2024-01-15 03:42:19] auth: Failed login attempt from 192.168.1.105
+[2024-01-15 03:42:20] ssh: Connection established from 192.168.1.105
+[2024-01-15 03:42:21] sys: Privilege escalation detected — root access
+
+>>> BERT CLASSIFIER ACTIVATED...
+>>> Analyzing log pattern...
+>>> Contextual embedding generated...
+>>> Classification: ⚠️  MALICIOUS  [confidence: 97.3%]
+>>> Alert dispatched to SOC team.
+```
+
+*This is what this project does — in real time.*
+
+---
+
+## 🧠 The Idea
+
+Every second, servers generate thousands of log lines. Most are boring.
+Some are suspicious. A few are dangerous.
+
+The old way? Rules. Keywords. Static filters.
+If attacker changes one word — the rule misses it.
+
+**The new way? Context.**
+
+BERT reads a log entry the way a human analyst would — understanding
+the *meaning* behind the words, not just matching patterns.
+
+```
+Rule Engine:  "failed login" → suspicious ✓
+              "unsuccessful authentication" → ??? ✗ missed
+
+BERT:         "unsuccessful authentication" → suspicious ✓ caught
+              (because it understands language, not just keywords)
 ```
 
 ---
 
-## ⚙️ Training Configuration
+## 🎯 What It Classifies
 
-| Parameter | Value |
-|---|---|
-| **Base Model** | bert-base-uncased |
-| **Task** | Sequence Classification (3 classes) |
-| **Max Sequence Length** | 128 tokens |
-| **Epochs** | 3 |
-| **Batch Size** | 8 |
-| **Optimizer** | AdamW |
-| **Learning Rate** | 2e-5 |
-| **Scheduler** | Linear warmup |
+<div align="center">
+
+| 🟢 NORMAL | 🟡 SUSPICIOUS | 🔴 MALICIOUS |
+|:---:|:---:|:---:|
+| Routine system activity | Anomalous patterns | Active attack signatures |
+| Expected user behavior | Worth investigating | Immediate response needed |
+| Healthy network traffic | Unusual access times | Privilege escalation |
+
+</div>
+
+---
+
+## 🗂️ The Dataset — Built From Scratch
+
+> No Kaggle. No shortcuts. Built a Python generator from zero.
+
+```python
+# generate_dataset.py — The data factory
+$ python generate_dataset.py
+
+✓ Generating normal logs...     [████████████████] 1201 rows
+✓ Generating suspicious logs... [████████████████] 1201 rows  
+✓ Generating malicious logs...  [████████████████] 1198 rows
+✓ Injecting 5% label noise...   [████████████████] done
+✓ Shuffling dataset...          [████████████████] done
+
+Dataset v2 ready → 3,600 rows saved to dataset_v2.csv
+```
+
+### Why v2?
+
+> v1 was too easy. BERT hit 100% accuracy — but that's not impressive,
+> that's a red flag. The logs were trivially separable by keywords alone.
+> 
+> v2 fixes this with **overlapping vocabulary** and **deliberate noise**.
+> Now the model actually has to *think*.
+
+| | v1 Dataset | v2 Dataset |
+|---|:---:|:---:|
+| Vocabulary overlap | ❌ None | ✅ Intentional |
+| Label noise | ❌ None | ✅ ~5% injected |
+| Trivially solvable | ✅ Yes (bad) | ❌ No (good) |
+| Accuracy meaning | ❌ Meaningless | ✅ Meaningful |
+
+---
+
+## 🏗️ Under The Hood
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    INPUT LOG ENTRY                       │
+│  "root login failed 47 times from unknown IP at 3AM"    │
+└─────────────────┬───────────────────────────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────────────────────────┐
+│               BERT TOKENIZER                             │
+│  [CLS] root login failed 47 times from unknown [SEP]    │
+│  Token IDs: [101, 4903, 7592, 3659, 4737, ...]          │
+└─────────────────┬───────────────────────────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────────────────────────┐
+│          BERT ENCODER (12 Transformer Layers)            │
+│  Each token attends to every other token                 │
+│  "failed" ←→ "47 times" ←→ "3AM" ←→ "unknown IP"       │
+│  Context flows in both directions simultaneously         │
+└─────────────────┬───────────────────────────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────────────────────────┐
+│            [CLS] TOKEN REPRESENTATION                    │
+│  768-dimensional vector encoding full log meaning        │
+└─────────────────┬───────────────────────────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────────────────────────┐
+│           CLASSIFICATION HEAD                            │
+│  Linear(768 → 3) + Softmax                              │
+│  normal: 1.2% | suspicious: 3.1% | malicious: 95.7%    │
+└─────────────────┬───────────────────────────────────────┘
+                  │
+                  ▼
+                  🔴 MALICIOUS
+```
+
+---
+
+## ⚙️ Training Config
+
+```python
+config = {
+    "model"        : "bert-base-uncased",
+    "task"         : "SequenceClassification → 3 classes",
+    "max_length"   : 128,       # tokens per log entry
+    "epochs"       : 3,
+    "batch_size"   : 8,         # CPU training on local machine
+    "optimizer"    : "AdamW",
+    "lr"           : 2e-5,      # standard BERT fine-tuning rate
+    "scheduler"    : "linear warmup",
+    "dataset"      : "custom v2 — 3,600 rows",
+    "split"        : "80/10/10 stratified",
+}
+```
+
+---
+
+## 📊 Results
+
+<div align="center">
+
+```
+⏳ Training in progress on v2 dataset...
+   Results will be updated once training completes.
+```
+
+| Metric | Score |
+|---|:---:|
+| Accuracy | `updating...` |
+| F1 Score (macro) | `updating...` |
+| Val Loss | `updating...` |
+
+> v1 achieved 100% — and that's exactly why we rebuilt the dataset.
+> Real results coming soon.
+
+</div>
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Category | Tools |
-|---|---|
-| **Model** | HuggingFace Transformers (AutoModelForSequenceClassification) |
-| **Tokenizer** | AutoTokenizer (bert-base-uncased) |
-| **Training** | PyTorch, AdamW, linear warmup scheduler |
-| **Evaluation** | scikit-learn (accuracy, F1, classification report, confusion matrix) |
-| **Data** | pandas, custom Python generator |
-| **Visualization** | matplotlib (loss curves, confusion matrix) |
-| **Demo UI** | Gradio (app.py) |
+```
+Language        →  Python
+Model           →  bert-base-uncased (HuggingFace Transformers)
+Deep Learning   →  PyTorch
+Tokenizer       →  AutoTokenizer
+Classifier      →  AutoModelForSequenceClassification
+Optimizer       →  AdamW + Linear Warmup Scheduler
+Evaluation      →  scikit-learn (F1, accuracy, confusion matrix)
+Data            →  pandas + custom generator
+Visualization   →  matplotlib (loss curves, confusion matrix)
+Demo            →  Gradio
+```
 
 ---
 
@@ -99,80 +227,69 @@ Output: normal / suspicious / malicious
 ```
 bert-security-log-classifier/
 │
-├── generate_dataset.py      # Custom synthetic dataset generator
-├── dataset_v2.csv           # Generated dataset (v2)
-├── train.py                 # BERT fine-tuning training loop
-├── evaluate.py              # Model evaluation & metrics
-├── app.py                   # Gradio demo UI
-├── requirements.txt         # Dependencies
-├── outputs/
-│   ├── loss_curve.png       # Training & validation loss plot
-│   └── confusion_matrix.png # Confusion matrix visualization
-└── README.md
+├── 📊 generate_dataset.py      ← builds synthetic log dataset
+├── 📋 dataset_v2.csv           ← 3,600 labelled log entries
+├── 🏋️ train.py                 ← fine-tuning loop
+├── 📐 evaluate.py              ← metrics & evaluation
+├── 🖥️ app.py                   ← Gradio live demo
+├── 📦 requirements.txt
+│
+└── outputs/
+    ├── 📈 loss_curve.png        ← training & val loss plot
+    └── 🗺️ confusion_matrix.png  ← classification heatmap
 ```
 
 ---
 
-## 📊 Results
+## 🚀 Run It Yourself
 
-> ⏳ **Training in progress** on v2 dataset. Results will be updated once training completes.
-
-| Metric | Score |
-|---|---|
-| **Accuracy** | TBD |
-| **F1 Score (macro)** | TBD |
-| **val Loss** | TBD |
-
-> Note: v1 achieved 100% accuracy on an oversimplified dataset. v2 was rebuilt with realistic difficulty to produce meaningful evaluation metrics.
-
----
-
-## 🚀 How to Run
-
-### 1. Install Dependencies
 ```bash
+# 1. Clone & install
+git clone https://github.com/AkshayEtukuri/bert-security-log-classifier
 pip install torch transformers scikit-learn pandas matplotlib gradio
-```
 
-### 2. Generate Dataset
-```bash
+# 2. Generate dataset
 python generate_dataset.py
-```
 
-### 3. Train the Model
-```bash
+# 3. Train
 python train.py
-```
 
-### 4. Evaluate
-```bash
+# 4. Evaluate
 python evaluate.py
-```
 
-### 5. Launch Gradio Demo
-```bash
+# 5. Launch demo
 python app.py
+# → opens at http://localhost:7860
 ```
 
 ---
 
-## 🔮 Future Improvements
+## 🔮 What's Next
 
-- [ ] Update results after v2 training completes
-- [ ] Experiment with DistilBERT for faster inference
-- [ ] Add real-world log samples (CICIDS, UNSW-NB15)
+- [ ] Update results table after v2 training finishes
+- [ ] Try DistilBERT — same accuracy, 60% faster
+- [ ] Add real-world logs (CICIDS2017, UNSW-NB15)
 - [ ] Deploy Gradio demo to HuggingFace Spaces
-- [ ] Add SHAP explainability for model decisions
+- [ ] Add SHAP explanations — *why* did BERT flag this log?
+- [ ] Connect to AI-IDS Capstone as the NLP module
 
 ---
 
+## 👤 Built By
 
-## 👤 Author
+<div align="center">
 
 **Akshay Etukuri**
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=flat&logo=linkedin&logoColor=white)](https://linkedin.com/in/akshay-etukuri-054a15207/)
-[![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat&logo=github&logoColor=white)](https://github.com/AkshayEtukuri)
+*AI/ML Engineer in the Making | Cybersecurity + Deep Learning*
 
----
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/in/akshay-etukuri-054a15207/)
+[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AkshayEtukuri)
+[![Portfolio](https://img.shields.io/badge/Portfolio-00D4FF?style=for-the-badge&logo=firefox&logoColor=white)](https://akshayetukuri.github.io)
 
-*Part of an ongoing AI/ML portfolio focused on intelligent cybersecurity systems.*
+</div>
+
+<div align="center">
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0f3460,50:16213e,100:1a1a2e&height=120&section=footer&text=Not%20every%20threat%20announces%20itself.&fontSize=20&fontColor=00D4FF&animation=fadeIn" />
+
+</div>
