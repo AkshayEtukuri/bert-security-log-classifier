@@ -166,12 +166,6 @@ python app.py
 
 ---
 
-## 🔗 Related Projects
-
-- [KDD Cup 99 — Network Intrusion Detection](https://github.com/AkshayEtukuri/KDD-Intrusion-Detection) — Classical ML approach to network security
-- AI-IDS Capstone *(coming soon)* — End-to-end intelligent intrusion detection system
-
----
 
 ## 👤 Author
 
